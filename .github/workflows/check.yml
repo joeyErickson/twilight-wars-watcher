@@ -34,3 +34,10 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_USER_ID: ${{ secrets.DISCORD_USER_ID }}
         run: python tw_watcher.py
+        
+      - name: Upload Debug Screenshot
+        if: failure() # Only runs if the script crashes
+        uses: actions/upload-artifact@v4
+        with:
+          name: login-error-screenshot
+          path: login_failed.png
