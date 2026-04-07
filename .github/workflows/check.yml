@@ -1,0 +1,36 @@
+name: Twilight Watcher Bot
+on:
+  schedule:
+    # Runs every 40 minutes
+    # The '0-4,12-23' hour range skips the 12AM-7AM window in Santiago time
+    - cron: '*/40 0-4,12-23 * * *'
+      timezone: "America/Santiago"
+  workflow_dispatch: # This allows you to click a button to test it instantly
+
+jobs:
+  check-game:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Pull your code from the repo
+      - uses: actions/checkout@v4
+
+      # 2. Set up the Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Install the libraries and the browser "engine"
+      - name: Install dependencies
+        run: |
+          pip install playwright requests
+          playwright install chromium
+
+      # 4. Run the script using the "Secrets" vault
+      - name: Run Script
+        env:
+          TW_EMAIL: ${{ secrets.TW_EMAIL }}
+          TW_PASSWORD: ${{ secrets.TW_PASSWORD }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USER_ID: ${{ secrets.DISCORD_USER_ID }}
+        run: python tw_watcher.py
