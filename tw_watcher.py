@@ -13,6 +13,26 @@ USER_PASS = os.getenv("TW_PASSWORD")
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK")
 DISCORD_USER_ID = os.getenv("DISCORD_USER_ID")
 
+def send_discord_ping(game_count):
+    # Construct the message with the mention syntax
+    message = f"<@{DISCORD_USER_ID}> 🚨 It is your turn in **{game_count}** games on Twilight Wars!"
+    
+    payload = {
+        "content": message,
+        "username": "Twilight Watcher",
+        "avatar_url": "https://i.imgur.com/4M34hi2.png" # Optional: add a cool icon
+    }
+    
+    try:
+        response = requests.post(WEBHOOK_URL, json=payload)
+        if response.status_code == 204:
+            print("Discord notification sent successfully!")
+        else:
+            print(f"Failed to send Discord notification: {response.status_code}")
+    except Exception as e:
+        print(f"Error connecting to Discord: {e}")
+
+
 def login_and_get_session(p):
     print("Attempting fresh login...")
     browser = p.chromium.launch(headless=True)
@@ -59,9 +79,7 @@ def run_watcher():
             turns = sum(1 for s in my_slots if s.locator("span.turn-indicator").count() > 0)
 
             if turns > 0:
-                msg = f"<@{DISCORD_USER_ID}> You have {turns} turns waiting!"
-                requests.post(WEBHOOK_URL, json={"content": msg})
-                print(f"Success: Alerted for {turns} turns.")
+                send_discord_ping(turns)
             else:
                 print("Checked: No turns found.")
 
