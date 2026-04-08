@@ -43,38 +43,38 @@ def send_discord_ping(game_count):
     except Exception as e:
         print(f"Error connecting to Discord: {e}")
 
-
 def login_and_get_session(p):
-    print("Attempting fresh login...")
+    print("Attempting fresh login with the dedicated submit button...")
     browser = p.chromium.launch(headless=True)
-    context = browser.new_context()
+    context = browser.new_context(
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    )
     page = context.new_page()
     
     try:
-        page.goto(LOGIN_URL)
+        page.goto(LOGIN_URL, wait_until="networkidle")
         
-        # 1. Wait for the IDs we just found
+        # 1. Fill the fields using their IDs
         page.wait_for_selector("#email")
-        
-        # 2. Fill using the ID selector (#)
         page.fill("#email", USER_EMAIL)
         page.fill("#password", USER_PASS)
         
-        print("Credentials entered. Submitting form...")
+        # 2. Click the specific button that is linked to the form
+        # We use a CSS selector that looks for a button with type='submit'
+        print("Clicking the detached submit button...")
+        page.click("button[type='submit']")
         
-        # 3. Press 'Enter' to trigger the validateLoginForm() and submission
-        # This is often more reliable than clicking a link-styled button
-        page.keyboard.press("Enter")
+        # 3. Wait for the game summary to load
+        print("Waiting for redirect to games list...")
+        page.wait_for_selector("ti-game-summary", timeout=60000)
         
-        # 4. Wait for the game summary to confirm we are in
-        page.wait_for_selector("ti-game-summary", timeout=45000)
-        
-        # Save the session
+        # Save the session for next time
         context.storage_state(path="auth.json")
-        print("Success! Session saved to auth.json")
+        print("Login Successful! Session saved.")
         
     except Exception as e:
-        page.screenshot(path="login_failed.png")
+        # Save a screenshot to the root folder so GitHub can find it
+        page.screenshot(path="login_failed.png", full_page=True)
         print(f"Login failed: {e}")
         raise e 
     finally:
