@@ -3,7 +3,7 @@ on:
   schedule:
     # Runs every 40 minutes
     # The '0-4,12-23' hour range skips the 12AM-7AM window in Santiago time
-    - cron: '*/40 0-4,12-23 * * *'
+    - cron: '*/20 0-4,12-23 * * *'
       timezone: "America/Santiago"
   workflow_dispatch: # This allows you to click a button to test it instantly
 
