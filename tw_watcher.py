@@ -46,7 +46,6 @@ def send_discord_ping(game_count):
 
 def login_and_get_session(p):
     print("Attempting fresh login...")
-    # We add 'slow_mo' to act more like a human
     browser = p.chromium.launch(headless=True)
     context = browser.new_context()
     page = context.new_page()
@@ -54,29 +53,30 @@ def login_and_get_session(p):
     try:
         page.goto(LOGIN_URL)
         
-        # 1. Be very specific with the selectors
-        # If these fail, check the 'name' attributes on the login page again
-        page.wait_for_selector("input[name='email']")
-        page.fill("input[name='email']", USER_EMAIL)
-        page.fill("input[name='password']", USER_PASS)
+        # 1. Wait for the IDs we just found
+        page.wait_for_selector("#email")
         
-        # 2. Try clicking the button by its text to be safe
-        page.click("button:has-text('Login'), button:has-text('Sign In'), button[type='submit']")
+        # 2. Fill using the ID selector (#)
+        page.fill("#email", USER_EMAIL)
+        page.fill("#password", USER_PASS)
         
-        print("Login clicked, waiting for redirect...")
+        print("Credentials entered. Submitting form...")
         
-        # 3. Increase timeout and wait for the games list to actually render
+        # 3. Press 'Enter' to trigger the validateLoginForm() and submission
+        # This is often more reliable than clicking a link-styled button
+        page.keyboard.press("Enter")
+        
+        # 4. Wait for the game summary to confirm we are in
         page.wait_for_selector("ti-game-summary", timeout=45000)
         
         # Save the session
         context.storage_state(path="auth.json")
-        print("Session refreshed and saved.")
+        print("Success! Session saved to auth.json")
         
     except Exception as e:
-        # This is the "Black Box" recorder
         page.screenshot(path="login_failed.png")
-        print(f"Login failed: {e}. Check 'login_failed.png' in GitHub artifacts.")
-        raise e # Re-throw so the action shows as failed
+        print(f"Login failed: {e}")
+        raise e 
     finally:
         browser.close()
 
