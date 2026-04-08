@@ -1,8 +1,19 @@
 import os
+import sys
 import time
 import requests
 from playwright.sync_api import sync_playwright
 
+# Secret Validation
+REQUIRED_SECRETS = ["TW_EMAIL", "TW_PASSWORD", "DISCORD_WEBHOOK", "DISCORD_USER_ID"]
+missing = []
+
+for secret in REQUIRED_SECRETS:
+    if not os.getenv(secret):
+        missing.append(secret)
+if missing:
+    print(f"Error: Missing the following Github Secrets: {', '.joing(missing)}")
+    sys.exit(1)
 # --- CONFIGURATION (Pulled from GitHub Secrets) ---
 GAME_URL = "https://www.twilightwars.com/games"
 LOGIN_URL = "https://www.twilightwars.com/login"
